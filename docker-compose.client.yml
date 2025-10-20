@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: antonalmishev/supermarket-pos-db:latest
+    container_name: pos-shop-db
+    environment:
+      POSTGRES_DB: billing_app
+      POSTGRES_USER: user1
+      POSTGRES_PASSWORD: asroma
+    ports:
+      - "5433:5432" # Changed to avoid conflict with local PostgreSQL
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - pos-shop-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user1 -d billing_app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    image: antonalmishev/supermarket-pos-backend:latest
+    container_name: pos-shop-backend
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/billing_app
+      SPRING_DATASOURCE_USERNAME: user1
+      SPRING_DATASOURCE_PASSWORD: asroma
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SERVER_PORT: "8087"
+      SERVER_SERVLET_CONTEXT_PATH: /api/v1.0
+      JWT_SECRET_KEY: thisismysecretkeyfortheupcomingproject
+      AWS_ACCESS_KEY: disabled
+      AWS_SECRET_KEY: disabled
+      AWS_REGION: eu-central-1
+      AWS_BUCKET_NAME: disabled
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pos-shop-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8087/api/v1.0/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - ./uploads:/app/uploads # Mount uploads directory
+    restart: unless-stopped
+
+  frontend:
+    image: antonalmishev/supermarket-pos-frontend:latest
+    container_name: pos-shop-frontend
+    ports:
+      - "3001:80" # Changed to avoid conflict with local development
+    depends_on:
+      - backend
+    networks:
+      - pos-shop-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  pos-shop-network:
+    name: supermarket_pos-shop-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: supermarket_postgres_data
+    driver: local
