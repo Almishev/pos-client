@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: antonalmishev/supermarket-pos-db:latest
+    image: postgres:15-alpine
     container_name: pos-shop-db
     environment:
       POSTGRES_DB: billing_app
