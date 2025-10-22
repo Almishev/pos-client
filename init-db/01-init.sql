@@ -1,11 +1,44 @@
 -- Supermarket POS Database Initialization
 -- This file will be executed when the PostgreSQL container starts for the first time
+-- IMPORTANT: This script waits for Hibernate to create tables before inserting data
+
+-- Wait for tables to be created by Hibernate (Spring Boot)
+-- This prevents "relation does not exist" errors
+DO $$
+DECLARE
+    table_exists boolean;
+    max_attempts integer := 30;
+    attempt integer := 0;
+BEGIN
+    -- Wait for tbl_users table to be created by Hibernate
+    LOOP
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'tbl_users'
+        ) INTO table_exists;
+        
+        IF table_exists THEN
+            EXIT;
+        END IF;
+        
+        attempt := attempt + 1;
+        IF attempt >= max_attempts THEN
+            RAISE EXCEPTION 'Timeout waiting for tables to be created by Hibernate';
+        END IF;
+        
+        -- Wait 2 seconds before checking again
+        PERFORM pg_sleep(2);
+    END LOOP;
+    
+    RAISE NOTICE 'Tables are ready, proceeding with data insertion...';
+END $$;
 
 -- Create initial admin user
 -- Password: 123456 (hashed with BCrypt)
 INSERT INTO tbl_users (email, password, name, role, user_id, created_at, updated_at) 
 VALUES (
-    'admin@supermarket.com', 
+    'admin@abv.com', 
     '$2a$10$EQscBVYmdrjfRz1bHJWUcu4gwBHmEuO6eAcRWxYjkpCxpOI9wFIwa', 
     'Supermarket Admin', 
     'ROLE_ADMIN',
@@ -14,26 +47,12 @@ VALUES (
     NOW()
 ) ON CONFLICT (user_id) DO NOTHING;
 
--- Create initial categories
-INSERT INTO tbl_category (name, description, created_at, updated_at) 
-VALUES 
-    ('Храна', 'Хранителни продукти', NOW(), NOW()),
-    ('Напитки', 'Различни напитки', NOW(), NOW()),
-    ('Козметика', 'Козметични продукти', NOW(), NOW()),
-    ('Домакинство', 'Домакински продукти', NOW(), NOW())
-ON CONFLICT DO NOTHING;
+-- Note: Categories, items, and customers can be added later through the web interface
+-- This keeps the initial setup simple and clean
 
--- Create sample items
-INSERT INTO tbl_items (name, price, category_id, stock_quantity, barcode, created_at, updated_at) 
-VALUES 
-    ('Хляб', 2.50, 1, 100, '1234567890123', NOW(), NOW()),
-    ('Мляко', 3.20, 1, 50, '1234567890124', NOW(), NOW()),
-    ('Кока Кола', 2.80, 2, 200, '1234567890125', NOW(), NOW()),
-    ('Вода', 1.50, 2, 150, '1234567890126', NOW(), NOW())
-ON CONFLICT DO NOTHING;
-
--- Create sample customer
-INSERT INTO tbl_customers (name, email, phone, address, created_at, updated_at) 
-VALUES 
-    ('Общ клиент', 'customer@general.com', '0000000000', 'Общ адрес', NOW(), NOW())
-ON CONFLICT DO NOTHING;
+-- Final success message
+DO $$
+BEGIN
+    RAISE NOTICE 'Database initialization completed successfully!';
+    RAISE NOTICE 'Admin user: admin@abv.com / 123456';
+END $$;
