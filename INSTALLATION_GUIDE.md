@@ -31,7 +31,7 @@ chmod +x *.sh
 
 ### Step 4: Access Your POS System
 - Open browser: **http://localhost:3001**
-- Login: `admin@supermarket.com` / `123456`
+- Login: `admin@abv.com` / `123456`
 
 ## Daily Usage
 

@@ -58,7 +58,7 @@ After installation, open your web browser and go to:
 **http://localhost:3001**
 
 ### Default Login Credentials
-- **Email:** `admin@supermarket.com`
+- **Email:** `admin@abv.com`
 - **Password:** `123456`
 
 ## 🎯 Features

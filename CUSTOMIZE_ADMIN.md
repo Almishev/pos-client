@@ -13,7 +13,7 @@
    ```sql
    INSERT INTO tbl_users (email, password, name, role, user_id, created_at, updated_at) 
    VALUES (
-       'admin@supermarket.com',  -- ← Change this
+       'admin@abv.com',  -- ← Change this
        '$2a$10$EQscBVYmdrjfRz1bHJWUcu4gwBHmEuO6eAcRWxYjkpCxpOI9wFIwa', 
        'Supermarket Admin',       -- ← Change this
        'ROLE_ADMIN',
@@ -88,7 +88,7 @@ VALUES (
 If you prefer to create admin users after installation:
 
 1. **Install system** with default admin
-2. **Login** with `admin@supermarket.com` / `123456`
+2. **Login** with `admin@abv.com` / `123456`
 3. **Go to "Manage Users"** in the web interface
 4. **Create new admin** through the UI
 5. **Delete default admin** (optional)

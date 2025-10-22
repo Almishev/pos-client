@@ -21,5 +21,5 @@ echo "POS System restarted!"
 echo "Go to: http://localhost:3001"
 echo
 echo "Default login:"
-echo "Email: admin@supermarket.com"
+echo "Email: admin@abv.com"
 echo "Password: 123456"

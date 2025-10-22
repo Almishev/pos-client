@@ -155,7 +155,7 @@ echo "  🌐 Web Interface: http://localhost:3001"
 echo "  🔧 API Endpoint: http://localhost:8087"
 echo
 print_info "Default Login Credentials:"
-echo "  📧 Email: admin@supermarket.com"
+echo "  📧 Email: admin@abv.com"
 echo "  🔑 Password: 123456"
 echo
 print_warning "Note: If the system is still starting, please wait 2-3 minutes"
