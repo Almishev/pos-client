@@ -8,38 +8,49 @@ Complete POS (Point of Sale) system for supermarkets with modern web interface.
 - **Linux Mint 20+** (Ubuntu 20.04+ based)
 - **4GB RAM minimum**
 - **Internet connection** (for initial download)
+- **Regular user account** (not root)
 
-### One-Command Installation
+### GitHub Installation (Recommended)
 
 ```bash
-# Download and run installer
-wget https://your-domain.com/install.sh
-chmod +x install.sh
-./install.sh
-```
+# Clone the repository
+git clone https://github.com/Almishev/pos-client.git
+cd pos-client
 
-### Manual Installation
-
-1. **Install Docker:**
-```bash
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
-# Log out and log back in
-```
-
-2. **Download POS System:**
-```bash
-wget https://your-domain.com/supermarket-pos.zip
-unzip supermarket-pos.zip
-cd supermarket-pos
-```
-
-3. **Start the system:**
-```bash
+# Make scripts executable
 chmod +x *.sh
+
+# Run the installer
 ./install.sh
 ```
+
+### Installation Process
+
+The installation is a **two-step process**:
+
+#### **Step 1: First Run**
+```bash
+./install.sh
+```
+- Installs Docker and Docker Compose using standard Ubuntu/Mint packages
+- Adds your user to the docker group
+- **IMPORTANT:** You must log out and log back in after this step
+
+#### **Step 2: Second Run**
+```bash
+./install.sh
+```
+- Downloads the POS system images from Docker Hub
+- Starts all services
+- System is ready to use!
+
+### Why Two Steps?
+
+This approach ensures:
+- ✅ **Reliable installation** using standard system packages
+- ✅ **Proper permissions** for Docker access
+- ✅ **No corrupted files** from APT cache issues
+- ✅ **Clean separation** between system setup and application deployment
 
 ## 🌐 Access the System
 
@@ -115,6 +126,37 @@ The system consists of three main components:
 
 ## 🛠️ Troubleshooting
 
+### Installation Issues
+
+#### **"Docker group does not exist" Error**
+```bash
+# Clean APT cache and reinstall
+sudo apt clean
+sudo apt update
+sudo apt install docker.io docker-compose -y
+sudo systemctl start docker
+sudo usermod -aG docker $USER
+# Log out and log back in
+```
+
+#### **"Permission denied" Error**
+```bash
+# Make sure you're not running as root
+whoami
+# Should show your username, not 'root'
+
+# If you ran as root, switch to regular user
+su - your_username
+```
+
+#### **"APT cache corrupted" Error**
+```bash
+# Clean and fix APT cache
+sudo apt clean
+sudo apt update --fix-missing
+sudo apt install -f
+```
+
 ### System Won't Start
 ```bash
 # Check Docker status
@@ -134,6 +176,9 @@ docker-compose -f docker-compose.client.yml ps
 
 # Check port availability
 netstat -tlnp | grep :3001
+
+# Check if Docker is running
+docker info
 ```
 
 ### Database Issues
@@ -144,6 +189,20 @@ docker-compose -f docker-compose.client.yml logs postgres
 # Restart database
 docker-compose -f docker-compose.client.yml restart postgres
 ```
+
+### Common Solutions
+
+#### **If installation fails on first run:**
+1. Log out and log back in
+2. Run `./install.sh` again
+
+#### **If images fail to download:**
+1. Check internet connection
+2. Try: `docker-compose -f docker-compose.client.yml pull`
+
+#### **If services won't start:**
+1. Check logs: `docker-compose -f docker-compose.client.yml logs`
+2. Restart: `./restart.sh`
 
 ## 📞 Support
 
