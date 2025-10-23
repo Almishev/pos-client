@@ -60,9 +60,6 @@ services:
     container_name: pos-shop-frontend
     ports:
       - "3001:80" # Changed to avoid conflict with local development
-    environment:
-      # Use server's IP address for network access
-      - VITE_API_BASE_URL=http://192.168.80.120:8087/api/v1.0
     depends_on:
       - backend
     networks:
