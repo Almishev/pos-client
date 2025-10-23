@@ -46,7 +46,7 @@ services:
     networks:
       - pos-shop-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8087/api/v1.0/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8087/api/v1.0/health"]
       interval: 30s
       timeout: 10s
       retries: 3

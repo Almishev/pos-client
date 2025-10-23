@@ -4,13 +4,20 @@ Complete POS (Point of Sale) system for supermarkets with modern web interface.
 
 ## 🚀 Quick Installation
 
-### Prerequisites
-- **Linux Mint 20+** (Ubuntu 20.04+ based)
-- **4GB RAM minimum**
-- **Internet connection** (for initial download)
-- **Regular user account** (not root)
+### System Requirements
+- **OS:** Linux Mint 20+ (Ubuntu 20.04+ based)
+- **RAM:** 4GB minimum (8GB recommended)
+- **Storage:** 20GB free space
+- **Network:** Ethernet connection recommended
+- **User:** Regular user account (not root)
 
-### GitHub Installation (Recommended)
+### Server Setup
+- **CPU:** Dual-core minimum (Quad-core recommended)
+- **RAM:** 8GB recommended for multiple users
+- **Storage:** SSD recommended for better performance
+- **Network:** Static IP address recommended
+
+### Installation
 
 ```bash
 # Clone the repository
@@ -54,8 +61,31 @@ This approach ensures:
 
 ## 🌐 Access the System
 
+### Local Access
 After installation, open your web browser and go to:
 **http://localhost:3001**
+
+### Network Access (from other computers)
+To access from other computers in your network:
+**http://[SERVER_IP]:3001**
+
+Where `[SERVER_IP]` is the IP address of your server computer.
+
+#### Finding Server IP Address
+```bash
+# Find server IP address
+ip addr show | grep inet
+# or
+hostname -I
+```
+
+#### Firewall Configuration
+```bash
+# Allow access to POS system ports
+sudo ufw allow 3001
+sudo ufw allow 8087
+sudo ufw enable
+```
 
 ### Default Login Credentials
 - **Email:** `admin@abv.com`
@@ -223,6 +253,40 @@ docker-compose -f docker-compose.client.yml pull
 
 # Start the system
 ./start.sh
+```
+
+## 💾 Backup & Maintenance
+
+### Database Backup
+```bash
+# Create backup
+docker exec pos-shop-db pg_dump -U user1 billing_app > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Restore backup
+docker exec -i pos-shop-db psql -U user1 billing_app < backup_file.sql
+```
+
+### System Maintenance
+```bash
+# Check system status
+./status.sh
+
+# View logs
+docker-compose -f docker-compose.client.yml logs
+
+# Clean up old Docker images
+docker system prune -a
+```
+
+## 🚀 Automatic Startup
+
+The system will start automatically when the server boots up:
+
+```bash
+# Create systemd service for automatic startup
+sudo cp pos-system.service /etc/systemd/system/
+sudo systemctl enable pos-system
+sudo systemctl start pos-system
 ```
 
 ## 📝 License

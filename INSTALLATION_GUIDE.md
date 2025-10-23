@@ -1,6 +1,6 @@
 # 🚀 Supermarket POS System - Installation Guide
 
-## Quick Start for Clients
+## Quick Start for Linux Mint Server
 
 ### Step 1: Download the System
 ```bash
