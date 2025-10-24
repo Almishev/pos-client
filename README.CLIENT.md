@@ -21,15 +21,21 @@ Complete POS (Point of Sale) system for supermarkets with modern web interface.
 
 ```bash
 # Clone the repository
-git clone https://github.com/Almishev/pos-client.git
-cd pos-client
+git clone https://github.com/your-repo/supermarket-pos.git
+cd supermarket-pos/client-package
 
 # Make scripts executable
 chmod +x *.sh
 
-# Run the installer
+# Run the installer (automatically creates .env with secure passwords)
 ./install.sh
 ```
+
+### 🔐 Security Features
+- **Automatic password generation** - Secure passwords are generated automatically
+- **Environment variables** - All sensitive data is stored in .env file
+- **No hardcoded secrets** - All credentials are configurable
+- **Git-safe** - .env files are automatically ignored by git
 
 ### Installation Process
 
@@ -90,6 +96,25 @@ sudo ufw enable
 ### Default Login Credentials
 - **Email:** `admin@abv.com`
 - **Password:** `123456`
+
+### 🔧 Environment Configuration
+
+The system automatically creates a `.env` file with secure passwords during installation. You can customize the configuration by editing the `.env` file:
+
+```bash
+# Edit environment variables
+nano .env
+```
+
+**Important environment variables:**
+- `SPRING_DATASOURCE_PASSWORD` - Database password (auto-generated)
+- `JWT_SECRET_KEY` - JWT secret key (auto-generated)
+- `AWS_ACCESS_KEY` - AWS S3 access key (if using file upload)
+- `AWS_SECRET_KEY` - AWS S3 secret key (if using file upload)
+- `RAZORPAY_KEY_ID` - Razorpay key (if using payments)
+- `RAZORPAY_KEY_SECRET` - Razorpay secret (if using payments)
+
+**Security Note:** The `.env` file contains sensitive information and is automatically ignored by git. Never commit this file to version control.
 
 ## 🎯 Features
 

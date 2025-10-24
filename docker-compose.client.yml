@@ -27,6 +27,8 @@ services:
     container_name: pos-shop-backend
     ports:
       - "8087:8087"
+    env_file:
+      - .env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/billing_app
       SPRING_DATASOURCE_USERNAME: user1
@@ -35,11 +37,6 @@ services:
       SPRING_JPA_SHOW_SQL: "true"
       SERVER_PORT: "8087"
       SERVER_SERVLET_CONTEXT_PATH: /api/v1.0
-      JWT_SECRET_KEY: thisismysecretkeyfortheupcomingproject
-      AWS_ACCESS_KEY: disabled
-      AWS_SECRET_KEY: disabled
-      AWS_REGION: eu-central-1
-      AWS_BUCKET_NAME: disabled
     depends_on:
       postgres:
         condition: service_healthy

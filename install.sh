@@ -86,8 +86,45 @@ if [ ! -f "docker-compose.client.yml" ]; then
     exit 1
 fi
 
-# Step 2: Downloading POS System images
-echo "Step 2: Downloading POS System images..."
+# Step 2: Setting up environment configuration
+echo "Step 2: Setting up environment configuration..."
+
+# Check if .env file exists
+if [ ! -f ".env" ]; then
+    print_warning ".env file not found! Creating from template..."
+    
+    if [ -f "env.example" ]; then
+        cp env.example .env
+        print_status ".env file created from template"
+        
+        # Generate secure passwords
+        print_info "Generating secure passwords..."
+        
+        # Generate JWT secret key
+        JWT_SECRET=$(openssl rand -base64 64 2>/dev/null || echo "fallback_jwt_secret_$(date +%s)")
+        DB_PASSWORD=$(openssl rand -base64 32 2>/dev/null || echo "fallback_db_pass_$(date +%s)")
+        
+        # Update .env file with generated passwords
+        if command -v sed &> /dev/null; then
+            sed -i "s/thisismysecretkeyfortheupcomingproject/$JWT_SECRET/g" .env
+            sed -i "s/asroma/$DB_PASSWORD/g" .env
+            print_status "Secure passwords generated and updated in .env"
+            print_warning "IMPORTANT: Save these passwords securely!"
+            print_info "Database password: $DB_PASSWORD"
+            print_info "JWT secret key: $JWT_SECRET"
+        else
+            print_warning "sed not available, please manually update passwords in .env file"
+        fi
+    else
+        print_error "env.example not found!"
+        exit 1
+    fi
+else
+    print_status ".env file already exists"
+fi
+
+# Step 3: Downloading POS System images
+echo "Step 3: Downloading POS System images..."
 print_info "This may take a few minutes depending on your internet connection..."
 docker-compose -f docker-compose.client.yml pull
 
@@ -99,8 +136,8 @@ fi
 
 print_status "Images downloaded successfully!"
 
-# Step 3: Starting POS System
-echo "Step 3: Starting POS System..."
+# Step 4: Starting POS System
+echo "Step 4: Starting POS System..."
 docker-compose -f docker-compose.client.yml up -d
 
 if [ $? -ne 0 ]; then
@@ -109,15 +146,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Step 4: Waiting for services to be ready
-echo "Step 4: Waiting for services to start..."
+# Step 5: Waiting for services to be ready
+echo "Step 5: Waiting for services to start..."
 print_info "Please wait while the system initializes..."
 
 # Wait longer for database initialization
 sleep 15
 
 # Check if services are running
-echo "Step 5: Checking service status..."
+echo "Step 6: Checking service status..."
 if docker-compose -f docker-compose.client.yml ps | grep -q "Up"; then
     print_status "Services are running!"
     
