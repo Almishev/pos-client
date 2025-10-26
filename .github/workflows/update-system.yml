@@ -1,0 +1,66 @@
+name: Client System Management
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Check for image updates
+      run: |
+        echo "🔍 Checking for Docker image updates..."
+        echo "Backend image: antonalmishev/supermarket-pos-backend:latest"
+        echo "Frontend image: antonalmishev/supermarket-pos-frontend:latest"
+        echo ""
+        echo "📋 Client update instructions:"
+        echo "1. cd client-package"
+        echo "2. docker-compose -f docker-compose.client.yml pull"
+        echo "3. docker-compose -f docker-compose.client.yml up -d"
+        echo "4. docker-compose -f docker-compose.client.yml ps"
+    
+    - name: Create update guide
+      run: |
+        echo "# 🚀 Client System Update Guide" > CLIENT_UPDATE_GUIDE.md
+        echo "" >> CLIENT_UPDATE_GUIDE.md
+        echo "## 📅 Last Check: $(date)" >> CLIENT_UPDATE_GUIDE.md
+        echo "" >> CLIENT_UPDATE_GUIDE.md
+        echo "## 🔄 How to Update Your System:" >> CLIENT_UPDATE_GUIDE.md
+        echo "" >> CLIENT_UPDATE_GUIDE.md
+        echo "### Step 1: Stop the system" >> CLIENT_UPDATE_GUIDE.md
+        echo '```bash' >> CLIENT_UPDATE_GUIDE.md
+        echo 'cd client-package' >> CLIENT_UPDATE_GUIDE.md
+        echo './stop.sh' >> CLIENT_UPDATE_GUIDE.md
+        echo '```' >> CLIENT_UPDATE_GUIDE.md
+        echo "" >> CLIENT_UPDATE_GUIDE.md
+        echo "### Step 2: Pull latest images" >> CLIENT_UPDATE_GUIDE.md
+        echo '```bash' >> CLIENT_UPDATE_GUIDE.md
+        echo 'docker-compose -f docker-compose.client.yml pull' >> CLIENT_UPDATE_GUIDE.md
+        echo '```' >> CLIENT_UPDATE_GUIDE.md
+        echo "" >> CLIENT_UPDATE_GUIDE.md
+        echo "### Step 3: Start the system" >> CLIENT_UPDATE_GUIDE.md
+        echo '```bash' >> CLIENT_UPDATE_GUIDE.md
+        echo './start.sh' >> CLIENT_UPDATE_GUIDE.md
+        echo '```' >> CLIENT_UPDATE_GUIDE.md
+        echo "" >> CLIENT_UPDATE_GUIDE.md
+        echo "### Step 4: Verify everything is running" >> CLIENT_UPDATE_GUIDE.md
+        echo '```bash' >> CLIENT_UPDATE_GUIDE.md
+        echo './status.sh' >> CLIENT_UPDATE_GUIDE.md
+        echo '```' >> CLIENT_UPDATE_GUIDE.md
+        echo "" >> CLIENT_UPDATE_GUIDE.md
+        echo "## 🌐 Access Your System:" >> CLIENT_UPDATE_GUIDE.md
+        echo "- **Local:** http://localhost:3001" >> CLIENT_UPDATE_GUIDE.md
+        echo "- **Network:** http://[YOUR_IP]:3001" >> CLIENT_UPDATE_GUIDE.md
+        echo "- **Login:** admin@abv.com / 123456" >> CLIENT_UPDATE_GUIDE.md
+    
+    - name: Upload update guide
+      uses: actions/upload-artifact@v3
+      with:
+        name: client-update-guide
+        path: CLIENT_UPDATE_GUIDE.md
