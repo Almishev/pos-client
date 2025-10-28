@@ -59,7 +59,7 @@ services:
       - "3001:80" # Changed to avoid conflict with local development
     environment:
       - VITE_API_BASE_URL=http://localhost:8087/api/v1.0
-      - BACKEND_URL=http://localhost:8087
+      - BACKEND_URL=http://backend:8087
     depends_on:
       - backend
     networks:
