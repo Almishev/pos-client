@@ -1,0 +1,15 @@
+[Unit]
+Description=Supermarket POS System
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/%i/pos-client
+ExecStart=/usr/bin/docker-compose -f docker-compose.client.yml up -d
+ExecStop=/usr/bin/docker-compose -f docker-compose.client.yml down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

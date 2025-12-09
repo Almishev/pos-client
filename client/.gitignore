@@ -1,0 +1,50 @@
+﻿# Environment files with sensitive data
+.env
+.env.local
+.env.production
+.env.staging
+
+# Docker volumes and data
+postgres_data/
+uploads/
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Node modules (if any)
+node_modules/
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.backup
+*.bak
+*.old
