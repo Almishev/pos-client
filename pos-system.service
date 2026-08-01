@@ -1,15 +1,18 @@
 [Unit]
 Description=Supermarket POS System
-After=docker.service
+After=docker.service network-online.target
 Requires=docker.service
+Wants=network-online.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/home/%i/pos-client
+# IMPORTANT: set this to the real install directory on the server
+WorkingDirectory=/opt/pos-client
 ExecStart=/usr/bin/docker-compose -f docker-compose.client.yml up -d
 ExecStop=/usr/bin/docker-compose -f docker-compose.client.yml down
 TimeoutStartSec=0
+User=root
 
 [Install]
 WantedBy=multi-user.target

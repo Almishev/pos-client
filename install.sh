@@ -39,7 +39,11 @@ fi
 # Step 1: Checking and Installing Docker and Docker Compose
 echo "Step 1: Checking and Installing Docker..."
 
-if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
+has_compose() {
+    docker compose version &> /dev/null || command -v docker-compose &> /dev/null
+}
+
+if ! command -v docker &> /dev/null || ! has_compose; then
     print_warning "Docker or Docker Compose not found! Installing..."
     
     # Clean APT cache to avoid corrupted files
@@ -50,7 +54,7 @@ if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null;
     print_info "Updating package list..."
     sudo apt update
     
-    # Install Docker and Compose V1 together (most reliable)
+    # Install Docker and Compose V1 together (most reliable on Mint/Ubuntu)
     print_info "Installing Docker and Docker Compose..."
     sudo apt install docker.io docker-compose -y
     
@@ -108,10 +112,18 @@ if [ ! -f ".env" ]; then
         if command -v sed &> /dev/null; then
             sed -i "s/thisismysecretkeyfortheupcomingproject/$JWT_SECRET/g" .env
             sed -i "s/asroma/$DB_PASSWORD/g" .env
+            # Ensure browser API URL exists for local access
+            if ! grep -q '^VITE_API_BASE_URL=' .env; then
+                echo "VITE_API_BASE_URL=http://localhost:8087/api/v1.0" >> .env
+            fi
+            if ! grep -q '^ALLOWED_ORIGINS=' .env; then
+                echo "ALLOWED_ORIGINS=http://localhost:3001,http://127.0.0.1:3001" >> .env
+            fi
             print_status "Secure passwords generated and updated in .env"
             print_warning "IMPORTANT: Save these passwords securely!"
             print_info "Database password: $DB_PASSWORD"
             print_info "JWT secret key: $JWT_SECRET"
+            print_info "docker-compose.client.yml reads SPRING_DATASOURCE_PASSWORD from .env"
         else
             print_warning "sed not available, please manually update passwords in .env file"
         fi
@@ -123,10 +135,19 @@ else
     print_status ".env file already exists"
 fi
 
+# Helper: prefer docker compose plugin, fall back to docker-compose
+compose() {
+    if docker compose version &> /dev/null; then
+        docker compose "$@"
+    else
+        docker-compose "$@"
+    fi
+}
+
 # Step 3: Downloading POS System images
 echo "Step 3: Downloading POS System images..."
 print_info "This may take a few minutes depending on your internet connection..."
-docker-compose -f docker-compose.client.yml pull
+compose -f docker-compose.client.yml pull
 
 if [ $? -ne 0 ]; then
     print_error "Failed to download images!"
@@ -138,11 +159,11 @@ print_status "Images downloaded successfully!"
 
 # Step 4: Starting POS System
 echo "Step 4: Starting POS System..."
-docker-compose -f docker-compose.client.yml up -d
+compose -f docker-compose.client.yml up -d
 
 if [ $? -ne 0 ]; then
     print_error "Failed to start the system!"
-    print_info "Please check the logs: docker-compose -f docker-compose.client.yml logs"
+    print_info "Please check the logs: docker compose -f docker-compose.client.yml logs"
     exit 1
 fi
 
@@ -155,7 +176,7 @@ sleep 15
 
 # Check if services are running
 echo "Step 6: Checking service status..."
-if docker-compose -f docker-compose.client.yml ps | grep -q "Up"; then
+if compose -f docker-compose.client.yml ps | grep -qE "Up|running"; then
     print_status "Services are running!"
     
     # Additional health check
@@ -188,45 +209,19 @@ echo
 print_status "Your Supermarket POS System is ready!"
 echo
 print_info "Access your POS system:"
-echo "  🌐 Web Interface: http://localhost:3001"
-echo "  🔧 API Endpoint: http://localhost:8087"
+echo "  Web Interface: http://localhost:3001"
+echo "  API Endpoint: http://localhost:8087/api/v1.0"
 echo
 print_info "Default Login Credentials:"
-echo "  📧 Email: admin@abv.com"
-echo "  🔑 Password: 123456"
+echo "  Email: admin@abv.com"
+echo "  Password: 123456"
 echo
-print_warning "Note: If the system is still starting, please wait 2-3 minutes"
-print_warning "and refresh your browser. You can check status with: ./status.sh"
+print_warning "For other PCs in the shop, run: ./switch-network.sh"
+print_warning "If the system is still starting, wait 2-3 minutes and refresh."
 echo
-echo "========================================"
-echo "    Management Commands"
-echo "========================================"
+echo "Management: ./start.sh | ./stop.sh | ./restart.sh | ./status.sh"
+echo "Guide: INSTALLATION_GUIDE.md"
 echo
-echo "🛑 Stop the system:"
-echo "  ./stop.sh"
-echo
-echo "▶️  Start the system:"
-echo "  ./start.sh"
-echo
-echo "🔄 Restart the system:"
-echo "  ./restart.sh"
-echo
-echo "📊 Check status:"
-echo "  ./status.sh"
-echo
-echo "📋 View logs:"
-echo "  docker-compose -f docker-compose.client.yml logs"
-echo
-echo "========================================"
-echo "    Troubleshooting"
-echo "========================================"
-echo
-echo "If you encounter issues:"
-echo "1. Check system status: ./status.sh"
-echo "2. View logs: docker-compose -f docker-compose.client.yml logs"
-echo "3. Restart system: ./restart.sh"
-echo "4. For support, contact your system administrator"
-echo
-print_info "Installation completed successfully! 🎉"
+print_info "Installation completed successfully!"
 echo
 read -p "Press Enter to continue..."

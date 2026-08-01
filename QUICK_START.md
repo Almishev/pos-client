@@ -1,79 +1,46 @@
-# 🚀 Бърз старт - Supermarket POS System
+# Бърз старт — POS на Linux
 
-## 📋 За клиентите на Linux Mint
+За магазински сървър (Linux Mint / Ubuntu). Подробности: [INSTALLATION_GUIDE.md](./INSTALLATION_GUIDE.md)
 
-### 1. Инсталация (една команда)
+## Инсталация
+
 ```bash
-# Клонирайте и инсталирайте
-git clone https://github.com/your-repo/supermarket-pos.git
-cd supermarket-pos/client-package
+sudo apt update && sudo apt install -y git curl openssl
+git clone https://github.com/Almishev/pos-client.git
+cd pos-client
 chmod +x *.sh
+./install.sh
+# → излезте и влезте отново
 ./install.sh
 ```
 
-### 2. Следващи стъпки
-1. **Излезте и влезте отново** в системата (за docker групата)
-2. **Стартирайте отново**: `./install.sh`
-3. **Отворете браузъра**: http://localhost:3001
-4. **Влезте с**: admin@abv.com / 123456
+Отворете **http://localhost:3001**  
+Вход: **admin@abv.com** / **123456**
 
-### 3. Управление на системата
+## Управление
+
 ```bash
-./start.sh    # Стартиране
-./stop.sh     # Спиране
-./restart.sh  # Рестартиране
-./status.sh   # Проверка на състоянието
+./start.sh
+./stop.sh
+./restart.sh
+./status.sh
 ```
 
-### 4. Достъп от мрежата
-- **Локално**: http://localhost:3001
-- **От други компютри**: http://[SERVER_IP]:3001
+## Други компютри в магазина
 
-Намерете IP адреса:
 ```bash
+./switch-network.sh
+./restart.sh
 hostname -I
 ```
 
-### 5. Настройка на firewall
-```bash
-sudo ufw allow 3001
-sudo ufw allow 8087
-sudo ufw enable
-```
+На касата: `http://SERVER_IP:3001`  
+Firewall: `sudo ufw allow 3001 && sudo ufw allow 8087`
 
-## 🔐 Сигурност
-
-- ✅ **Автоматично генерирани пароли** - Системата създава сигурни пароли автоматично
-- ✅ **Environment variables** - Всички чувствителни данни са в .env файл
-- ✅ **Git-safe** - .env файловете не се комитират
-- ✅ **Без хардкодирани секрети** - Всички credentials са конфигурируеми
-
-## ⚠️ Важни бележки
-
-1. **Сменете паролата** след първото влизане
-2. **Запазете .env файла** - съдържа важни пароли
-3. **Регулярни backup-и** - използвайте `./backup.sh` (ако съществува)
-4. **Обновяване**: `./stop.sh && docker-compose pull && ./start.sh`
-
-## 🆘 При проблеми
+## Backup
 
 ```bash
-# Проверете състоянието
-./status.sh
-
-# Проверете логите
-docker-compose -f docker-compose.client.yml logs
-
-# Рестартирайте системата
-./restart.sh
+docker exec pos-shop-db pg_dump -U user1 billing_app > backup_$(date +%Y%m%d).sql
 ```
 
-## 📞 Поддръжка
-
-- **Email**: support@supermarket-pos.com
-- **Phone**: +359 XXX XXX XXX
-- **Documentation**: https://docs.supermarket-pos.com
-
----
-
-**🎉 Готово! Вашата POS система е готова за използване!**
+Пазете и файла `.env`.

@@ -1,3 +1,6 @@
+# Prefer: keep docker-compose.client.yml and run ./switch-network.sh
+# (updates VITE_API_BASE_URL / ALLOWED_ORIGINS in .env).
+# This file is a LAN-oriented fallback if you still copy it manually.
 version: '3.8'
 
 services:
@@ -5,11 +8,11 @@ services:
     image: postgres:15-alpine
     container_name: pos-shop-db
     environment:
-      POSTGRES_DB: billing_app
-      POSTGRES_USER: user1
-      POSTGRES_PASSWORD: asroma
+      POSTGRES_DB: ${POSTGRES_DB:-billing_app}
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME:-user1}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-asroma}
     ports:
-      - "5433:5432" # Changed to avoid conflict with local PostgreSQL
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
@@ -27,42 +30,40 @@ services:
     container_name: pos-shop-backend
     ports:
       - "8087:8087"
+    env_file:
+      - .env
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/billing_app
-      SPRING_DATASOURCE_USERNAME: user1
-      SPRING_DATASOURCE_PASSWORD: asroma
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-billing_app}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-user1}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-asroma}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
       SERVER_PORT: "8087"
       SERVER_SERVLET_CONTEXT_PATH: /api/v1.0
-      JWT_SECRET_KEY: thisismysecretkeyfortheupcomingproject
-      AWS_ACCESS_KEY: disabled
-      AWS_SECRET_KEY: disabled
-      AWS_REGION: eu-central-1
-      AWS_BUCKET_NAME: disabled
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3001}
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - pos-shop-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8087/api/v1.0/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8087/api/v1.0/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     volumes:
-      - ./uploads:/app/uploads # Mount uploads directory
+      - ./uploads:/app/uploads
     restart: unless-stopped
 
   frontend:
     image: antonalmishev/supermarket-pos-frontend:latest
     container_name: pos-shop-frontend
     ports:
-      - "3001:80" # Changed to avoid conflict with local development
+      - "3001:80"
     environment:
-      # Use server's IP address for network access
-      - VITE_API_BASE_URL=http://192.168.80.120:8087/api/v1.0
+      # Replace 192.168.80.120 with the shop server LAN IP, or use ./switch-network.sh instead
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://192.168.80.120:8087/api/v1.0}
+      - BACKEND_URL=${BACKEND_URL:-http://192.168.80.120:8087}
     depends_on:
       - backend
     networks:

@@ -21,77 +21,19 @@ Complete POS (Point of Sale) system for supermarkets with modern web interface.
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-repo/supermarket-pos.git
-cd supermarket-pos/client-package
+git clone https://github.com/Almishev/pos-client.git
+cd pos-client
 
 # Make scripts executable
 chmod +x *.sh
 
-# Run the installer (automatically creates .env with secure passwords)
+# Run the installer (creates .env; may generate DB/JWT secrets)
 ./install.sh
 ```
 
-### 🔐 Security Features
-- **Automatic password generation** - Secure passwords are generated automatically
-- **Environment variables** - All sensitive data is stored in .env file
-- **No hardcoded secrets** - All credentials are configurable
-- **Git-safe** - .env files are automatically ignored by git
+Follow the **two-step** install (logout/login after Docker is installed), then run `./install.sh` again.
 
-### Installation Process
-
-The installation is a **two-step process**:
-
-#### **Step 1: First Run**
-```bash
-./install.sh
-```
-- Installs Docker and Docker Compose using standard Ubuntu/Mint packages
-- Adds your user to the docker group
-- **IMPORTANT:** You must log out and log back in after this step
-
-#### **Step 2: Second Run**
-```bash
-./install.sh
-```
-- Downloads the POS system images from Docker Hub
-- Starts all services
-- System is ready to use!
-
-### Why Two Steps?
-
-This approach ensures:
-- ✅ **Reliable installation** using standard system packages
-- ✅ **Proper permissions** for Docker access
-- ✅ **No corrupted files** from APT cache issues
-- ✅ **Clean separation** between system setup and application deployment
-
-## 🌐 Access the System
-
-### Local Access
-After installation, open your web browser and go to:
-**http://localhost:3001**
-
-### Network Access (from other computers)
-To access from other computers in your network:
-**http://[SERVER_IP]:3001**
-
-Where `[SERVER_IP]` is the IP address of your server computer.
-
-#### Finding Server IP Address
-```bash
-# Find server IP address
-ip addr show | grep inet
-# or
-hostname -I
-```
-
-#### Firewall Configuration
-```bash
-# Allow access to POS system ports
-sudo ufw allow 3001
-sudo ufw allow 8087
-sudo ufw enable
-```
+Full guide (Bulgarian): see **[INSTALLATION_GUIDE.md](./INSTALLATION_GUIDE.md)** and **[QUICK_START.md](./QUICK_START.md)**.
 
 ### Default Login Credentials
 - **Email:** `admin@abv.com`
@@ -109,10 +51,12 @@ nano .env
 **Important environment variables:**
 - `SPRING_DATASOURCE_PASSWORD` - Database password (auto-generated)
 - `JWT_SECRET_KEY` - JWT secret key (auto-generated)
-- `AWS_ACCESS_KEY` - AWS S3 access key (if using file upload)
-- `AWS_SECRET_KEY` - AWS S3 secret key (if using file upload)
-- `RAZORPAY_KEY_ID` - Razorpay key (if using payments)
-- `RAZORPAY_KEY_SECRET` - Razorpay secret (if using payments)
+- `VITE_API_BASE_URL` - Browser → API URL (`http://localhost:8087/api/v1.0` or `http://SERVER_IP:8087/api/v1.0`)
+- `ALLOWED_ORIGINS` - CORS origins for the UI (include every shop PC URL)
+- `AWS_ACCESS_KEY` / `AWS_SECRET_KEY` - optional S3
+- `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` - optional payments
+
+For other PCs in the shop: `./switch-network.sh` then `./restart.sh`.
 
 **Security Note:** The `.env` file contains sensitive information and is automatically ignored by git. Never commit this file to version control.
 
@@ -291,6 +235,8 @@ docker exec pos-shop-db pg_dump -U user1 billing_app > backup_$(date +%Y%m%d_%H%
 docker exec -i pos-shop-db psql -U user1 billing_app < backup_file.sql
 ```
 
+Keep a copy of `.env` together with SQL backups.
+
 ### System Maintenance
 ```bash
 # Check system status
@@ -305,14 +251,16 @@ docker system prune -a
 
 ## 🚀 Automatic Startup
 
-The system will start automatically when the server boots up:
+Automatic boot is **optional**. Edit `WorkingDirectory` in `pos-system.service` (default `/opt/pos-client`), then:
 
 ```bash
-# Create systemd service for automatic startup
 sudo cp pos-system.service /etc/systemd/system/
+sudo systemctl daemon-reload
 sudo systemctl enable pos-system
 sudo systemctl start pos-system
 ```
+
+See [INSTALLATION_GUIDE.md](./INSTALLATION_GUIDE.md) section 6.
 
 ## 📝 License
 
