@@ -39,8 +39,16 @@ Firewall: `sudo ufw allow 3001 && sudo ufw allow 8087`
 
 ## Backup
 
+От UI: **Отчети → Backup на базата** (локално / AWS). Файлове: `archives/db-backups/`.
+
+Или ръчно:
 ```bash
 docker exec pos-shop-db pg_dump -U user1 billing_app > backup_$(date +%Y%m%d).sql
+```
+
+Restore от `.sql.gz`:
+```bash
+gunzip -c archives/db-backups/backup_....sql.gz | docker exec -i pos-shop-db psql -U user1 billing_app
 ```
 
 Пазете и файла `.env`.

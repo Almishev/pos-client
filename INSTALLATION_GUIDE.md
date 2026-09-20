@@ -160,15 +160,41 @@ sudo systemctl status pos-system
 
 ## 7. Backup и възстановяване
 
-```bash
-# Backup
-docker exec pos-shop-db pg_dump -U user1 billing_app > backup_$(date +%Y%m%d_%H%M%S).sql
+### От приложението (препоръчително)
+В **Отчети → Експорт данни → Backup на базата**:
+- **Backup локално** → файлове в `archives/db-backups/` (на сървъра)
+- **Backup в AWS** → S3 prefix `db-backups/` (ако са настроени AWS credentials)
+- **Изтегли** → копие на USB / друг компютър
 
-# Restore (внимание: презаписва данни)
+Нощен автоматичен локален backup в **03:00**; ако сървърът е бил изключен, при следващо пускане се прави **catch-up** backup. Пазят се последните **7** файла. Backup **не трие** данни от PostgreSQL.
+
+### Лиценз / абонамент (Google Sheet)
+В `.env` на магазина:
+```
+LICENSE_ENABLED=true
+LICENSE_CHECK_URL=https://script.google.com/macros/s/.../exec
+LICENSE_SHOP_ID=SHOP-...
+LICENSE_KEY=...
+```
+При login POS изисква `active: true` от Apps Script. Офлайн grace: 7 дни. Ръчно спиране в Sheet: `status=disabled` или изтекла `valid_until`.
+
+### Ръчен CLI backup
+```bash
+docker exec pos-shop-db pg_dump -U user1 billing_app > backup_$(date +%Y%m%d_%H%M%S).sql
+```
+
+### Възстановяване (внимание: презаписва данни в базата)
+От UI backup (`.sql.gz`):
+```bash
+gunzip -c archives/db-backups/backup_YYYYMMDD_HHMMSS.sql.gz | docker exec -i pos-shop-db psql -U user1 billing_app
+```
+
+От некомпресиран SQL:
+```bash
 docker exec -i pos-shop-db psql -U user1 billing_app < backup_YYYYMMDD_HHMMSS.sql
 ```
 
-Пазете и файла **`.env`** (пароли, JWT, IP настройки).
+Пазете и файла **`.env`** заедно с backup файловете (пароли, JWT, IP настройки).
 
 ---
 

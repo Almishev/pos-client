@@ -226,16 +226,21 @@ docker-compose -f docker-compose.client.yml pull
 
 ## 💾 Backup & Maintenance
 
-### Database Backup
-```bash
-# Create backup
-docker exec pos-shop-db pg_dump -U user1 billing_app > backup_$(date +%Y%m%d_%H%M%S).sql
+### Database Backup (from UI)
+In **Reports → Export data → Database backup**: create local or AWS full dump (`.sql.gz`). Files land in `archives/db-backups/`. Nightly local backup at 03:00; last 7 files kept. **Does not delete** DB data.
 
-# Restore backup
-docker exec -i pos-shop-db psql -U user1 billing_app < backup_file.sql
+Download a copy to USB for disaster recovery. Keep `.env` with the backups.
+
+### Restore (CLI — overwrites DB data)
+```bash
+gunzip -c archives/db-backups/backup_YYYYMMDD_HHMMSS.sql.gz | docker exec -i pos-shop-db psql -U user1 billing_app
 ```
 
-Keep a copy of `.env` together with SQL backups.
+### Manual CLI dump
+```bash
+docker exec pos-shop-db pg_dump -U user1 billing_app > backup_$(date +%Y%m%d_%H%M%S).sql
+docker exec -i pos-shop-db psql -U user1 billing_app < backup_file.sql
+```
 
 ### System Maintenance
 ```bash

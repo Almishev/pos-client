@@ -53,6 +53,7 @@ services:
       start_period: 40s
     volumes:
       - ./uploads:/app/uploads # Mount uploads directory
+      - ./archives/db-backups:/app/archives/db-backups
     restart: unless-stopped
 
   frontend:
