@@ -2,35 +2,41 @@
 
 echo "Restarting Supermarket POS System..."
 
-# Check if docker-compose.client.yml exists
 if [ ! -f "docker-compose.client.yml" ]; then
     echo "Error: docker-compose.client.yml not found!"
     echo "Please make sure you're in the correct directory."
     exit 1
 fi
 
-# Load .env for BACKUP_HOST_PATH (USB / external disk)
+compose() {
+    if docker compose version &>/dev/null; then
+        docker compose "$@"
+    elif command -v docker-compose &>/dev/null; then
+        docker-compose "$@"
+    else
+        echo "Error: neither 'docker compose' nor 'docker-compose' found."
+        exit 1
+    fi
+}
+
+# Read BACKUP_HOST_PATH without sourcing whole .env (avoids unquoted spaces / cron values)
+BACKUP_DIR="./archives/db-backups"
 if [ -f .env ]; then
-    set -a
-    # shellcheck disable=SC1091
-    source .env
-    set +a
+    raw=$(grep -E '^[[:space:]]*BACKUP_HOST_PATH=' .env | tail -n1 | cut -d= -f2- | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+    if [ -n "$raw" ]; then
+        BACKUP_DIR="$raw"
+    fi
 fi
-BACKUP_DIR="${BACKUP_HOST_PATH:-./archives/db-backups}"
 mkdir -p "$BACKUP_DIR"
 echo "Backup directory: $BACKUP_DIR"
 
-# Stop the system
 echo "Stopping services..."
-docker-compose -f docker-compose.client.yml down
+compose -f docker-compose.client.yml down
 
-# Start the system
 echo "Starting services..."
-docker-compose -f docker-compose.client.yml up -d
+compose -f docker-compose.client.yml up -d
 
 echo "POS System restarted!"
 echo "Go to: http://localhost:3001"
 echo
-echo "Default login:"
-echo "Email: admin@abv.com"
-echo "Password: 123456"
+echo "Default login: digit PIN (admin 000000)"
