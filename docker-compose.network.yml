@@ -40,6 +40,7 @@ services:
       SERVER_PORT: "8087"
       SERVER_SERVLET_CONTEXT_PATH: /api/v1.0
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3001}
+      BACKUP_LOCAL_DIR: /app/archives/db-backups
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,7 +54,8 @@ services:
       start_period: 40s
     volumes:
       - ./uploads:/app/uploads
-      - ./archives/db-backups:/app/archives/db-backups
+      - ./archives:/app/archives
+      - ${BACKUP_HOST_PATH:-./archives/db-backups}:/app/archives/db-backups
     restart: unless-stopped
 
   frontend:

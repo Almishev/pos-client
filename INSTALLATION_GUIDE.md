@@ -162,11 +162,20 @@ sudo systemctl status pos-system
 
 ### От приложението (препоръчително)
 В **Отчети → Експорт данни → Backup на базата**:
-- **Backup локално** → файлове в `archives/db-backups/` (на сървъра)
+- **Backup локално** → файлове в `BACKUP_HOST_PATH` (по подразбиране `archives/db-backups/` на сървъра)
 - **Backup в AWS** → S3 prefix `db-backups/` (ако са настроени AWS credentials)
 - **Изтегли** → копие на USB / друг компютър
 
-Нощен автоматичен локален backup в **03:00**; ако сървърът е бил изключен, при следващо пускане се прави **catch-up** backup. Пазят се последните **7** файла. Backup **не трие** данни от PostgreSQL.
+Нощен автоматичен локален backup в **03:00**; ако сървърът е бил изключен, при следващо пускане се прави **catch-up** backup. Пазят се файловете от последните **30 дни**. Backup **не трие** данни от PostgreSQL.
+
+### Външен диск / флашка
+В `.env` задайте пътя към диска (трябва да е монтиран преди 03:00):
+```
+BACKUP_RETENTION_DAYS=30
+BACKUP_HOST_PATH=E:/POS-backups
+# Linux магазин пример: BACKUP_HOST_PATH=/mnt/external/pos-backups
+```
+След промяна: recreate на backend (`./restart.sh` или `docker compose up -d`). Ако Windows смени буквата на флашката, обновете `BACKUP_HOST_PATH` и рестартирайте.
 
 ### Лиценз / абонамент (Google Sheet)
 В `.env` на магазина:
@@ -184,9 +193,11 @@ docker exec pos-shop-db pg_dump -U user1 billing_app > backup_$(date +%Y%m%d_%H%
 ```
 
 ### Възстановяване (внимание: презаписва данни в базата)
-От UI backup (`.sql.gz`):
+От UI backup (`.sql.gz`) — пътят е `BACKUP_HOST_PATH` (или `archives/db-backups/` по подразбиране):
 ```bash
 gunzip -c archives/db-backups/backup_YYYYMMDD_HHMMSS.sql.gz | docker exec -i pos-shop-db psql -U user1 billing_app
+# или от външен диск, напр.:
+# gunzip -c /mnt/external/pos-backups/backup_YYYYMMDD_HHMMSS.sql.gz | docker exec -i pos-shop-db psql -U user1 billing_app
 ```
 
 От некомпресиран SQL:

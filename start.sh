@@ -9,6 +9,17 @@ if [ ! -f "docker-compose.client.yml" ]; then
     exit 1
 fi
 
+# Load .env for BACKUP_HOST_PATH (USB / external disk)
+if [ -f .env ]; then
+    set -a
+    # shellcheck disable=SC1091
+    source .env
+    set +a
+fi
+BACKUP_DIR="${BACKUP_HOST_PATH:-./archives/db-backups}"
+mkdir -p "$BACKUP_DIR"
+echo "Backup directory: $BACKUP_DIR"
+
 # Start the system
 docker-compose -f docker-compose.client.yml up -d
 

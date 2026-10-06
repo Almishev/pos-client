@@ -38,13 +38,21 @@ set_env_var() {
 apply_api_urls() {
     local host="$1"
     set_env_var "SERVER_IP" "$host"
-    set_env_var "VITE_API_BASE_URL" "http://${host}:8087/api/v1.0"
+    # Relative /api works for localhost, LAN IP, and Tailscale (nginx proxies) — avoids CORS
+    set_env_var "VITE_API_BASE_URL" "/api"
     set_env_var "BACKEND_URL" "http://${host}:8087"
-    if [ "$host" = "localhost" ] || [ "$host" = "127.0.0.1" ]; then
-        set_env_var "ALLOWED_ORIGINS" "http://localhost:3001,http://127.0.0.1:3001"
-    else
-        set_env_var "ALLOWED_ORIGINS" "http://localhost:3001,http://127.0.0.1:3001,http://${host}:3001"
+    local origins="http://localhost:3001,http://127.0.0.1:3001"
+    if [ "$host" != "localhost" ] && [ "$host" != "127.0.0.1" ]; then
+        origins="${origins},http://${host}:3001"
     fi
+    # Also allow Tailscale IP if present (same machine)
+    local ts_ip
+    ts_ip=$(tailscale ip -4 2>/dev/null | head -n1)
+    if [ -n "$ts_ip" ]; then
+        origins="${origins},http://${ts_ip}:3001"
+        print_info "Including Tailscale origin: http://${ts_ip}:3001"
+    fi
+    set_env_var "ALLOWED_ORIGINS" "$origins"
 }
 
 echo "========================================"

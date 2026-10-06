@@ -226,15 +226,58 @@ docker-compose -f docker-compose.client.yml pull
 
 ## 💾 Backup & Maintenance
 
-### Database Backup (from UI)
-In **Reports → Export data → Database backup**: create local or AWS full dump (`.sql.gz`). Files land in `archives/db-backups/`. Nightly local backup at 03:00; last 7 files kept. **Does not delete** DB data.
+Full PostgreSQL dump (`.sql.gz`). **Does not delete** live DB data. Admin only.
 
-Download a copy to USB for disaster recovery. Keep `.env` with the backups.
+### From the UI
+**Reports → Export data → Database backup**
+- **Backup локално** — writes to the configured local/USB path
+- **Backup в AWS** — uploads to S3 and keeps a local copy
+- List / download existing local files
 
-### Restore (CLI — overwrites DB data)
-```bash
-gunzip -c archives/db-backups/backup_YYYYMMDD_HHMMSS.sql.gz | docker exec -i pos-shop-db psql -U user1 billing_app
+### Automatic schedule
+- Nightly local backup at **03:00**
+- If the PC was off at 03:00, a **catch-up** backup runs on next backend start
+- Files older than **30 days** are pruned (`BACKUP_RETENTION_DAYS`)
+
+### Where files are stored
+
+| Setup | Config | Example |
+|-------|--------|---------|
+| Docker (shop server) | `BACKUP_HOST_PATH` in `.env` (host mount) | `E:/shop-backups` or `/mnt/external/pos-backups` |
+| Local Spring (no Docker) | `BACKUP_LOCAL_DIR` / default in `application.properties` | `E:/shop-backups` |
+
+Docker compose mounts `${BACKUP_HOST_PATH}` → `/app/archives/db-backups` and sets `BACKUP_LOCAL_DIR=/app/archives/db-backups` inside the container.
+
+```env
+BACKUP_RETENTION_DAYS=30
+BACKUP_SCHEDULE_ENABLED=true
+BACKUP_HOST_PATH=E:/shop-backups
 ```
+
+The disk must be plugged in / mounted before 03:00. If Windows changes the USB drive letter, update `.env` and recreate the backend container. Keep a copy of **`.env`** with the backups (passwords, JWT, IPs).
+
+### Restore (disaster recovery — overwrites DB)
+
+1. **Stop the backend** (do not let Hibernate create empty tables first).
+2. Recreate an empty database:
+```sql
+-- connect to database "postgres", not billing_app
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = 'billing_app' AND pid <> pg_backend_pid();
+
+DROP DATABASE IF EXISTS billing_app;
+CREATE DATABASE billing_app OWNER user1;
+```
+3. Restore **before** starting the app:
+```bash
+# Docker
+gunzip -c /path/to/backup_YYYYMMDD_HHMMSS.sql.gz | docker exec -i pos-shop-db psql -U user1 billing_app
+
+# Local PostgreSQL (after decompressing .gz to .sql)
+psql -h localhost -U user1 -d billing_app -f backup_YYYYMMDD_HHMMSS.sql
+```
+4. Start backend / frontend and log in.
 
 ### Manual CLI dump
 ```bash
