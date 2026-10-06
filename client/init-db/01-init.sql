@@ -35,7 +35,7 @@ BEGIN
 END $$;
 
 -- Create initial admin user
--- Password: 123456 (hashed with BCrypt)
+-- Password: 000000 (digit-only, hashed with BCrypt)
 -- Check if admin user already exists before inserting
 DO $$
 BEGIN
@@ -47,7 +47,7 @@ BEGIN
         INSERT INTO tbl_users (email, password, name, role, user_id, created_at, updated_at) 
         VALUES (
             'admin@abv.bg', 
-            '$2a$10$EQscBVYmdrjfRz1bHJWUcu4gwBHmEuO6eAcRWxYjkpCxpOI9wFIwa', 
+            '$2b$10$IGLun.l.Tq9SyTF.KUKZLOZ5U3ZFps1AkzpN.1cdGfptoLuWchtQe', 
             'Supermarket Admin', 
             'ROLE_ADMIN',
             'admin001',
@@ -67,5 +67,5 @@ END $$;
 DO $$
 BEGIN
     RAISE NOTICE 'Database initialization completed successfully!';
-    RAISE NOTICE 'Admin user: admin@abv.bg / 123456';
+    RAISE NOTICE 'Admin user: admin@abv.bg / 000000';
 END $$;
