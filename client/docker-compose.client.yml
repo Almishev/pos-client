@@ -40,6 +40,7 @@ services:
       SERVER_PORT: "8087"
       SERVER_SERVLET_CONTEXT_PATH: /api/v1.0
       BACKUP_LOCAL_DIR: /app/archives/db-backups
+      BACKUP_ENV_FILE: /app/backup-include/.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,6 +56,7 @@ services:
       - ./uploads:/app/uploads # Mount uploads directory
       - ./archives:/app/archives
       - ${BACKUP_HOST_PATH:-./archives/db-backups}:/app/archives/db-backups
+      - ./.env:/app/backup-include/.env:ro
     restart: unless-stopped
 
   frontend:

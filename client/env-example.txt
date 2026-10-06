@@ -50,3 +50,5 @@ BACKUP_SCHEDULE_ENABLED=true
 # Windows laptop: E:/shop-backups
 # Linux shop:     /mnt/pos-backup/shop-backups
 BACKUP_HOST_PATH=/mnt/pos-backup/shop-backups
+# Copied automatically to shop-backups/pos-client.env on each DB backup (via Docker mount)
+# BACKUP_ENV_FILE=/app/backup-include/.env

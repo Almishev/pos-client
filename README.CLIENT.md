@@ -254,7 +254,7 @@ BACKUP_SCHEDULE_ENABLED=true
 BACKUP_HOST_PATH=E:/shop-backups
 ```
 
-The disk must be plugged in / mounted before 03:00. If Windows changes the USB drive letter, update `.env` and recreate the backend container. Keep a copy of **`.env`** with the backups (passwords, JWT, IPs).
+The disk must be plugged in / mounted before 03:00. If Windows changes the USB drive letter, update `.env` and recreate the backend container. Keep a copy of **`.env`** with the backups (passwords, JWT, IPs). On each successful DB backup the backend also copies the shop `.env` to the backup folder as `pos-client.env` (Docker mounts `./.env` read-only into the container).
 
 ### Restore (disaster recovery — overwrites DB)
 
